@@ -6,6 +6,10 @@ client = MongoClient("mongodb://Lordviril:Gorposi0717@100.24.31.104:11981/")
 db = client["SeLeTiene"]
 users = db["Users"]
 
+@app.route("/lologramos", methods=["GET"])
+def lologramos():
+    return jsonify({"test": "complete"})
+
 @app.route("/users", methods=["POST"])
 def create_user():
     data = request.get_json()
