@@ -2,8 +2,8 @@ from flask import Flask, jsonify, request
 from pymongo import MongoClient
 
 app = Flask(__name__)
-client = MongoClient("mongodb://localhost",27017)
-db = client['PruebaEste']
+client = MongoClient("mongodb://Lordviril:Gorposi0717@localhost",27017)
+db = client.get_database("SeLeTiene")
 users = db["Pruebas"]
 
 @app.route("/lologramos", methods=["GET"])
@@ -17,7 +17,6 @@ def create_user():
     #data["_id"] = "usertest"
     # Insert new user
     users.insert_one(data)
-    result = users.find()
     return jsonify({"message": "Complete"})
 
 
