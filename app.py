@@ -5,7 +5,7 @@ app = Flask(__name__)
 client = MongoClient("mongodb://Lordviril:Gorposi0717@localhost:27017/")
 db = client["SeLeTiene"]
 users = db["Users"]
-
+db.auth()
 @app.route("/lologramos", methods=["GET"])
 def lologramos():
     return jsonify({"test": "complete"})
