@@ -4,7 +4,7 @@ from pymongo import MongoClient
 app = Flask(__name__)
 client = MongoClient()
 db = client['SeLeTiene']
-db.authenticate('mi_usuario', 'mi_contraseña')
+db.authenticate('Lordviril', 'Gorposi0717')
 
 
 
