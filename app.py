@@ -52,7 +52,7 @@ def create_user_arbelaez():
         return jsonify({"error": "El password no tiene 8 caracteres como minimo"}), 400       
     
     email = data["email"]
-    emailExist = usersArbelaez.find({"email": email})
+    emailExist = usersArbelaez.find_one({"email": email})
 
     if  emailExist : 
         return jsonify({"error": "El email ya existe"}), 400 
