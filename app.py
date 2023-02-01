@@ -1,6 +1,7 @@
 from contextlib import nullcontext
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
+from bson import json_util
 
 app = Flask(__name__)
 client = MongoClient("mongodb://Lordviril:Gorposi0717@100.26.132.234:27017/SeLeTiene")
@@ -60,5 +61,15 @@ def create_user_arbelaez():
         usersArbelaez.insert_one(data)
         return jsonify({"message": "Complete"}), 200 
 
+@app.route("/login", methods=["POST"])
+def login():   
+    data = request.get_json()
+    email = data["email"]
+    emailExist = usersArbelaez.find_one({"email": email})
+    if emailExist["password"] == data["password"] :
+        return json_util.dumps(emailExist), 200 
+    return jsonify({"error": "no fue posible autenticarse"}), 400
+    
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
