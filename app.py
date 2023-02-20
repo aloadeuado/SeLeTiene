@@ -1,6 +1,5 @@
 from contextlib import nullcontext
 from flask import Flask, jsonify, request, send_file
-from flask_restful import Api, Resource
 from pymongo import MongoClient
 from bson import json_util
 import os
