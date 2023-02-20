@@ -1,7 +1,10 @@
 from contextlib import nullcontext
 from flask import Flask, jsonify, request
+from flask_restful import Api, Resource
 from pymongo import MongoClient
 from bson import json_util
+import os
+import uuid
 
 app = Flask(__name__)
 client = MongoClient("mongodb://Lordviril:Gorposi0717@100.26.132.234:27017/SeLeTiene")
@@ -10,6 +13,8 @@ db = client.get_database("SeLeTiene")
 dbArbelaez = clientArbelaez.get_database("Arbelaez")
 users = db["Pruebas"]
 usersArbelaez = dbArbelaez["Users"]
+itemsArbelaez = dbArbelaez["Items"]
+listCurrencyArbelaez = dbArbelaez["ListCurrency"]
 
 charsValidateNumbers = "0123456789"
 charsValidateNumbers = "0123456789"
@@ -59,7 +64,7 @@ def create_user_arbelaez():
         return jsonify({"error": "El email ya existe"}), 400 
     else :
         usersArbelaez.insert_one(data)
-        return jsonify({"message": "Complete"}), 200 
+        return jsonify({"message": "Complete"}), 201 
 
 @app.route("/login", methods=["POST"])
 def login():   
@@ -69,7 +74,55 @@ def login():
     if emailExist["password"] == data["password"] :
         return json_util.dumps(emailExist), 200 
     return jsonify({"error": "no fue posible autenticarse"}), 400
-    
-    
+
+@app.route("/createCurrency", methods=["POST"])
+def createCurrency(): 
+    data = request.get_json()
+    listCurrencyArbelaez.insert_one(data)
+    return jsonify({"message": "Currency creado"}), 201 
+
+@app.route("/getListCurrency", methods=["GET"])
+def getListCurrency(): 
+    listCurrency = listCurrencyArbelaez.find()
+    listCurrencyData = []
+    for documento in listCurrency :
+        data = {"id": str(documento["_id"])}
+        data["moneda"] = documento["moneda"]
+        data["currency"] = documento["currency"]
+        data["code"] = documento["code"]
+        listCurrencyData.append(data)
+    return {"data": listCurrencyData}, 200
+
+@app.route("/addItem", methods=["POST"])
+def createItems(): 
+    data = request.get_json()
+    if not isinstance(data["name"], str) :
+        return jsonify({"error": "el campo name debe ser un String"}), 400 
+    if not data["name"] == "" :
+        return jsonify({"error": "el campo name no puede ir vacio"}), 400
+    # Obtener el archivo de la solicitud
+    file = request.files['file']
+    uid = uuid.uuid4()
+    filename = uid + data["name"]
+    file.save(os.path.join('uploads', filename))
+    url = request.host_url + 'uploads/' + filename
+    data["urlImage"] = url
+    if not isinstance(data["description"], str) :
+        return jsonify({"error": "el campo description debe ser un String"}), 400 
+    if not data["description"] == "" :
+        return jsonify({"error": "el campo description no puede ir vacio"}), 400 
+    if not isinstance(data["idCurrency"], str) :
+        return jsonify({"error": "el campo idCurrency debe ser un String"}), 400 
+    if not data["idCurrency"] == "" :
+        return jsonify({"error": "el campo idCurrency no puede ir vacio"}), 400 
+    currency = listCurrencyArbelaez.find_one({"_id":pymongo.ObjectId(data["idCurrency"])}) 
+    if not currency :
+        return jsonify({"error": "el id currency no esta registrado"}), 400 
+    if not isinstance(data["price"], float) :
+        return jsonify({"error": "el campo price debe ser un duble"}), 400 
+
+    itemsArbelaez.insert_one(data)
+    return jsonify({"message": "Producto creado"}), 201 
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
