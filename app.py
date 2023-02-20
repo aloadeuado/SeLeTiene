@@ -1,10 +1,12 @@
 from contextlib import nullcontext
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_restful import Api, Resource
 from pymongo import MongoClient
 from bson import json_util
 import os
 import uuid
+from bson import ObjectId
+import pymongo
 
 app = Flask(__name__)
 client = MongoClient("mongodb://Lordviril:Gorposi0717@100.26.132.234:27017/SeLeTiene")
@@ -71,6 +73,8 @@ def login():
     data = request.get_json()
     email = data["email"]
     emailExist = usersArbelaez.find_one({"email": email})
+    if not emailExist :
+        return jsonify({"error": "no fue posible autenticarse"}), 400
     if emailExist["password"] == data["password"] :
         return json_util.dumps(emailExist), 200 
     return jsonify({"error": "no fue posible autenticarse"}), 400
@@ -95,34 +99,52 @@ def getListCurrency():
 
 @app.route("/addItem", methods=["POST"])
 def createItems(): 
-    data = request.get_json()
+    data = request.form
+    #data = request.get_json()
     if not isinstance(data["name"], str) :
         return jsonify({"error": "el campo name debe ser un String"}), 400 
-    if not data["name"] == "" :
+    if data["name"] == "" :
         return jsonify({"error": "el campo name no puede ir vacio"}), 400
     # Obtener el archivo de la solicitud
+    item = itemsArbelaez.find_one({"name": str(data["name"])})
+    if  item : 
+        return jsonify({"error": "el nombre del producto ya existe"}), 400 
     file = request.files['file']
     uid = uuid.uuid4()
-    filename = uid + data["name"]
+    filename = str(uid) + file.filename
     file.save(os.path.join('uploads', filename))
     url = request.host_url + 'uploads/' + filename
-    data["urlImage"] = url
     if not isinstance(data["description"], str) :
         return jsonify({"error": "el campo description debe ser un String"}), 400 
-    if not data["description"] == "" :
+    if data["description"] == "" :
         return jsonify({"error": "el campo description no puede ir vacio"}), 400 
     if not isinstance(data["idCurrency"], str) :
         return jsonify({"error": "el campo idCurrency debe ser un String"}), 400 
-    if not data["idCurrency"] == "" :
+    if data["idCurrency"] == "" :
         return jsonify({"error": "el campo idCurrency no puede ir vacio"}), 400 
-    currency = listCurrencyArbelaez.find_one({"_id":pymongo.ObjectId(data["idCurrency"])}) 
+    sstrIdCurrency = str(data["idCurrency"])
+    idCurrency = ObjectId(sstrIdCurrency)
+    currency = listCurrencyArbelaez.find_one({"_id": idCurrency}) 
     if not currency :
         return jsonify({"error": "el id currency no esta registrado"}), 400 
-    if not isinstance(data["price"], float) :
-        return jsonify({"error": "el campo price debe ser un duble"}), 400 
+    try:
+        priceValue = float(data["price"])
+    except error:
+        return jsonify({"error": "el campo price debe ser un duoble"}), 400 
 
-    itemsArbelaez.insert_one(data)
+    itemsArbelaez.insert_one({"name": str(data["name"]), "description": str(data["description"]), "idCurrency": currency, "price": priceValue, "urlImage": url})
     return jsonify({"message": "Producto creado"}), 201 
 
+@app.route('/uploads/<nombre>', methods=['GET'])
+def obtener_imagen(nombre):
+    try:
+        # Ruta completa del archivo de imagen
+        ruta = f"uploads/{nombre}"
+        
+        # Devolver la imagen
+        return send_file(ruta, mimetype='image/jpeg')
+    except Exception as e:
+        return str(e)
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
