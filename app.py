@@ -13,10 +13,13 @@ client = MongoClient("mongodb://Lordviril:Gorposi0717@100.26.132.234:27017/SeLeT
 clientArbelaez = MongoClient("mongodb://miguel:arbelaez@100.26.132.234:27017/Arbelaez")
 db = client.get_database("SeLeTiene")
 dbArbelaez = clientArbelaez.get_database("Arbelaez")
-users = db["Pruebas"]
+
 usersArbelaez = dbArbelaez["Users"]
 itemsArbelaez = dbArbelaez["Items"]
 listCurrencyArbelaez = dbArbelaez["ListCurrency"]
+users = db["UsersTest"]
+listTextSearch = db["ListTextSearchTest"]
+listRecipeLocation = db["ListRecipeLocation"]
 
 charsValidateNumbers = "0123456789"
 charsValidateNumbers = "0123456789"
