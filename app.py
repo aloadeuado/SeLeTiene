@@ -134,15 +134,6 @@ def createItems():
     itemsArbelaez.insert_one({"name": str(data["name"]), "description": str(data["description"]), "idCurrency": currency, "price": priceValue, "urlImage": url})
     return jsonify({"message": "Producto creado"}), 201 
 
-@app.route('/uploads/<nombre>', methods=['GET'])
-def obtener_imagen(nombre):
-    try:
-        # Ruta completa del archivo de imagen
-        ruta = "uploads/{nombre}"
-        # Devolver la imagen
-        return send_file(ruta, mimetype='image/jpeg')
-    except Exception as e:
-        return str(e)
     
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
