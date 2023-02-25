@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from flask import Flask, jsonify, request, send_file
 from pymongo import MongoClient
 from bson import json_util
@@ -137,7 +138,7 @@ def createItems():
 def obtener_imagen(nombre):
     try:
         # Ruta completa del archivo de imagen
-        ruta = "uploads/{nombre}"
+        ruta = f"uploads/{nombre}"
         
         # Devolver la imagen
         return send_file(ruta, mimetype='image/jpeg')
