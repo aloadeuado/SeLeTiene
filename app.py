@@ -146,7 +146,7 @@ def obtener_imagen(nombre):
         return str(e)
 
 @app.route("/yape/api/registerOrAuth", methods=["POST"])
-def create_user():   
+def create_user_test_yape():   
     data = request.get_json()
     if not isinstance(data["email"], str) :
         return jsonify({"error": "el campo email debe ser un String"}), 400 
