@@ -138,8 +138,7 @@ def createItems():
 def obtener_imagen(nombre):
     try:
         # Ruta completa del archivo de imagen
-        ruta = f"uploads/{nombre}"
-        
+        ruta = "uploads/{nombre}"
         # Devolver la imagen
         return send_file(ruta, mimetype='image/jpeg')
     except Exception as e:
