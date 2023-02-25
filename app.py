@@ -6,6 +6,7 @@ import os
 import uuid
 from bson import ObjectId
 import pymongo
+import re
 
 app = Flask(__name__)
 client = MongoClient("mongodb://Lordviril:Gorposi0717@100.26.132.234:27017/SeLeTiene")
