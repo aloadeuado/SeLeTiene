@@ -42,8 +42,8 @@ def getListTextSearch():
 
 @app.route("/yape/api/getLocationsRecipes", methods=["GET"])
 def getLocationsRecipes():
-    return jsonify({"data": {
-    "data": [
+    return jsonify({"data": 
+    [
         {
             "idRecipe": 716627,
             "lat": 4.7109886,
@@ -60,7 +60,7 @@ def getLocationsRecipes():
             "lot": -76.5319854
         }
     ]
-}}), 200
+}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
