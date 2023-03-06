@@ -144,6 +144,30 @@ def obtener_imagen(nombre):
         return send_file(ruta, mimetype='image/jpeg')
     except Exception as e:
         return str(e)
-    
+
+@app.route("/getListItems", methods=["GET"])
+def getListItems(): 
+    listItemsArbelaez = itemsArbelaez.find()
+    listCurrency1 = listCurrencyArbelaez.find()
+    listItemsArbelaezData = []
+    for documento in listItemsArbelaez :
+        data = {"id": str(documento["_id"])}
+        data["name"] = documento["name"]
+        data["description"] = documento["description"]
+        data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
+        data["price"] = documento["price"]
+        data["urlImage"] = documento["urlImage"]
+        listItemsArbelaezData.append(data)
+    return {"data": listItemsArbelaezData}, 200
+
+def checkCurrency(listCurrency, idCurrency):
+    currency = {"currency": "$"}
+    for document in listCurrency:
+        if str(document["_id"]) == idCurrency :
+            currency = document
+            break
+
+    return currency
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
