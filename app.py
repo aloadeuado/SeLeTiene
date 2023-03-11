@@ -134,6 +134,61 @@ def createItems():
     itemsArbelaez.insert_one({"name": str(data["name"]), "description": str(data["description"]), "idCurrency": currency, "price": priceValue, "urlImage": url})
     return jsonify({"message": "Producto creado"}), 201 
 
+@app.route("/updateItem", methods=["POST"])
+def updateItem(): 
+    data = request.form
+    #data = request.get_json()
+    if not isinstance(data["id"], str) :
+        return jsonify({"error": "el campo id debe ser un String"}), 400 
+    if data["id"] == "" :
+        return jsonify({"error": "el campo id no puede ir vacio"}), 400
+    if not isinstance(data["name"], str) :
+        return jsonify({"error": "el campo name debe ser un String"}), 400 
+    if data["name"] == "" :
+        return jsonify({"error": "el campo name no puede ir vacio"}), 400
+    # Obtener el archivo de la solicitud
+    file = request.files['file']
+    uid = uuid.uuid4()
+    filename = str(uid) + file.filename
+    file.save(os.path.join('uploads', filename))
+    url = request.host_url + 'uploads/' + filename
+    if not isinstance(data["description"], str) :
+        return jsonify({"error": "el campo description debe ser un String"}), 400 
+    if data["description"] == "" :
+        return jsonify({"error": "el campo description no puede ir vacio"}), 400 
+    if not isinstance(data["idCurrency"], str) :
+        return jsonify({"error": "el campo idCurrency debe ser un String"}), 400 
+    if data["idCurrency"] == "" :
+        return jsonify({"error": "el campo idCurrency no puede ir vacio"}), 400 
+    sstrIdCurrency = str(data["idCurrency"])
+    idCurrency = ObjectId(sstrIdCurrency)
+    currency = listCurrencyArbelaez.find_one({"_id": idCurrency}) 
+    if not currency :
+        return jsonify({"error": "el id currency no esta registrado"}), 400 
+    try:
+        priceValue = float(data["price"])
+    except error:
+        return jsonify({"error": "el campo price debe ser un duoble"}), 400 
+    idd = data["id"]
+    onjectId = ObjectId(idd)
+    item = itemsArbelaez.find_one({"id": onjectId})
+    if  not item : 
+        return jsonify({"error": "el item no existe"}), 400 
+    itemsArbelaez.update_one({"id": onjectId}, { "$set": {"name": str(data["name"]), "description": str(data["description"]), "idCurrency": currency, "price": priceValue, "urlImage": url} })
+    return jsonify({"message": "Item actualizado"}), 200
+
+@app.route("/deleteItem", methods=["POST"])
+def deleteItem(): 
+    data = request.get_json()
+    if not isinstance(data["id"], str) :
+        return jsonify({"error": "el campo id debe ser un String"}), 400 
+    if data["id"] == "" :
+        return jsonify({"error": "el campo id no puede ir vacio"}), 400
+    idd = data["id"]
+    onjectId = ObjectId(idd)
+    itemsArbelaez.update_one({"id": onjectId}, { "$set": {"isDelete": True} })
+    return jsonify({"message": "Item Eliminado"}), 200
+
 @app.route('/uploads/<nombre>', methods=['GET'])
 def obtener_imagen(nombre):
     try:
