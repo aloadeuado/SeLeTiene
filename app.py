@@ -167,14 +167,14 @@ def updateItem():
         return jsonify({"error": "el id currency no esta registrado"}), 400 
     try:
         priceValue = float(data["price"])
-    except error:
+    except :
         return jsonify({"error": "el campo price debe ser un duoble"}), 400 
     idd = data["id"]
     onjectId = ObjectId(idd)
-    item = itemsArbelaez.find_one({"id": onjectId})
+    item = itemsArbelaez.find_one({"_id": onjectId})
     if  not item : 
         return jsonify({"error": "el item no existe"}), 400 
-    itemsArbelaez.update_one({"id": onjectId}, { "$set": {"name": str(data["name"]), "description": str(data["description"]), "idCurrency": currency, "price": priceValue, "urlImage": url} })
+    itemsArbelaez.update_one({"_id": onjectId}, { "$set": {"name": str(data["name"]), "description": str(data["description"]), "idCurrency": currency, "price": priceValue, "urlImage": url} })
     return jsonify({"message": "Item actualizado"}), 200
 
 @app.route("/deleteItem", methods=["POST"])
@@ -186,7 +186,10 @@ def deleteItem():
         return jsonify({"error": "el campo id no puede ir vacio"}), 400
     idd = data["id"]
     onjectId = ObjectId(idd)
-    itemsArbelaez.update_one({"id": onjectId}, { "$set": {"isDelete": True} })
+    item = itemsArbelaez.find_one({"_id": onjectId})
+    if  not item : 
+        return jsonify({"error": "el item no existe"}), 400 
+    itemsArbelaez.update_one({"_id": onjectId}, { "$set": {"isDelete": True} })
     return jsonify({"message": "Item Eliminado"}), 200
 
 @app.route('/uploads/<nombre>', methods=['GET'])
@@ -205,15 +208,32 @@ def getListItems():
     listItemsArbelaez = itemsArbelaez.find()
     listCurrency1 = listCurrencyArbelaez.find()
     listItemsArbelaezData = []
+    listItemsArbelaezDataDelete = []
     for documento in listItemsArbelaez :
-        data = {"id": str(documento["_id"])}
-        data["name"] = documento["name"]
-        data["description"] = documento["description"]
-        data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
-        data["price"] = documento["price"]
-        data["urlImage"] = documento["urlImage"]
-        listItemsArbelaezData.append(data)
-    return {"data": listItemsArbelaezData}, 200
+        isDelete:bool = False
+        try :
+            isDelete = documento["isDelete"]
+        except :
+            print
+        
+        if isDelete :
+            data = {"id": str(documento["_id"])}
+            data["name"] = documento["name"]
+            data["description"] = documento["description"]
+            data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
+            data["price"] = documento["price"]
+            data["urlImage"] = documento["urlImage"]
+            listItemsArbelaezDataDelete.append(data)
+        else :
+            data = {"id": str(documento["_id"])}
+            data["name"] = documento["name"]
+            data["description"] = documento["description"]
+            data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
+            data["price"] = documento["price"]
+            data["urlImage"] = documento["urlImage"]
+            listItemsArbelaezData.append(data)
+
+    return {"data": listItemsArbelaezData, "dataDelete": listItemsArbelaezDataDelete}, 200
 
 def checkCurrency(listCurrency, idCurrency):
     currency = {"currency": "$"}
