@@ -5,7 +5,8 @@ from bson import json_util
 import os
 import uuid
 from bson import ObjectId
-import pymongo
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 app = Flask(__name__)
 client = MongoClient("mongodb://Lordviril:Gorposi0717@100.26.132.234:27017/SeLeTiene")
@@ -22,6 +23,33 @@ charsValidateNumbers = "0123456789"
 @app.route("/lologramos", methods=["GET"])
 def lologramos():
     return jsonify({"test": "complete"})
+
+
+
+@app.route('/api/auth/google', methods=['POST'])
+def authenticate_with_google():
+    token = request.json.get('token')
+    try:
+        # Especifica el CLIENT_ID de tu proyecto de Google Cloud Platform
+        CLIENT_ID = '440767338444-5tdc33co645rsn1q0v48krcevdeg7dj2.apps.googleusercontent.com'
+        # Valida el token utilizando la API de validación de token de Google
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
+        if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+            raise ValueError('Wrong issuer.')
+        # La validación del token fue exitosa
+        return idinfo
+    except ValueError as exc:
+        # El token es inválido
+        print(f"Error de autenticación de Google: {exc}")
+        return None
+    
+
+
+
+
+
+
+
 
 @app.route("/users", methods=["POST"])
 def create_user():   
