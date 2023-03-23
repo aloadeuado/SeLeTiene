@@ -1,4 +1,5 @@
 from Configuration import *
+import secrets
 
 dbQa = client.get_database("SeLeTieneQa")
 dbPrd = client.get_database("SeLeTiene")
@@ -19,3 +20,7 @@ def getEnviromentMongo(env):
         return dbPrd
     else:
         raise ValueError("Invalid environment")
+    
+def generate_secret_key():
+    return secrets.token_hex(32)
+
