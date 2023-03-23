@@ -1,5 +1,6 @@
 from Configuration import *
 import secrets
+import bcrypt
 
 dbQa = client.get_database("SeLeTieneQa")
 dbPrd = client.get_database("SeLeTiene")
@@ -24,3 +25,7 @@ def getEnviromentMongo(env):
 def generate_secret_key():
     return secrets.token_hex(32)
 
+def check_password(hashed_password, password):
+    password_bytes = password.encode('utf-8') if isinstance(password, str) else str(password).encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8') if isinstance(hashed_password, str) else hashed_password
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
