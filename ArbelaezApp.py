@@ -6,15 +6,109 @@ from bson import json_util
 import uuid
 from bson import ObjectId
 import os
+import datetime
 
 dbArbelaez = clientArbelaez.get_database("ArbelaezApp")
 
 usersArbelaez = dbArbelaez["Users"]
 itemsArbelaez = dbArbelaez["Items"]
 listCurrencyArbelaez = dbArbelaez["ListCurrency"]
+itemsFavorites = dbArbelaez["ItemsFavorites"]
 
 charsValidateNumbers = "0123456789"
 charsValidateNumbers = "0123456789"
+
+@app.route("/addOrRemoveFavorite", methods=["POST"])
+def addOrRemoveFavorite(): 
+    data = request.get_json()
+    idItem = data["idItem"]
+    idUser = data["idUser"]
+
+    if not isinstance(idItem, str) :
+        return jsonify({"error": "el campo idItem debe ser un String"}), 400 
+    if idItem == "" :
+        return jsonify({"error": "el campo idItem no puede ir vacio"}), 400
+
+    if not isinstance(idUser, str) :
+        return jsonify({"error": "el campo idUser debe ser un String"}), 400 
+    if idUser == "" :
+        return jsonify({"error": "el campo idUser no puede ir vacio"}), 400
+    
+    onjectId = ObjectId(idUser)
+    user = usersArbelaez.find_one({"_id": onjectId})
+
+    if not user :
+        return jsonify({"error": "El usuario no exite"}), 400
+    
+    objectItemId = ObjectId(idItem)
+    item = itemsArbelaez.find_one({"_id": objectItemId})
+
+    if not item :
+        return jsonify({"error": "El Item no exite"}), 400
+
+    try :
+        usersFavorite = item["UsersFavorite"]
+        idUserExist = next((x for x in usersFavorite if x["idUser"] == idUser), None)
+        if not idUserExist :
+            usersFavorite.append({"idUser": idUser, "date": datetime.datetime.utcnow()})
+            item["UsersFavorite"] = usersFavorite
+            itemsArbelaez.update_one({"_id": objectItemId}, { "$set": item})
+            return jsonify({"message": "Usuario Agregado"}), 200
+        else :
+            usersFavorite = [x for x in usersFavorite if not x["idUser"] == idUser]
+            item["UsersFavorite"] = usersFavorite
+            itemsArbelaez.update_one({"_id": objectItemId}, { "$set": item})
+            return jsonify({"message": "Usuario Eliminado"}), 200
+    except :
+        item["UsersFavorite"] = [{"idUser": idUser, "date": datetime.datetime.utcnow()}]
+        itemsArbelaez.update_one({"_id": objectItemId}, { "$set": item})
+        return jsonify({"message": "Usuario Agregado"}), 200
+
+@app.route("/getListItems", methods=["POST"])
+def getListItems(): 
+    data = request.get_json()
+    idUser = data["idUser"]
+    listItemsArbelaez = itemsArbelaez.find()
+    listCurrency1 = listCurrencyArbelaez.find()
+    listItemsArbelaezData = []
+    listItemsArbelaezDataDelete = []
+    for documento in listItemsArbelaez :
+        isDelete:bool = False
+        try :
+            isDelete = documento["isDelete"]
+        except :
+            print
+        usersFavorite = documento.get("UsersFavorite", [])
+        userExist = next((x for x in usersFavorite if x["idUser"] == idUser), None)
+        
+        if isDelete :
+            data = {"id": str(documento["_id"])}
+            data["name"] = documento["name"]
+            data["description"] = documento["description"]
+            data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
+            data["price"] = documento["price"]
+            data["urlImage"] = documento["urlImage"]
+            data["isFavorite"] = userExist is not None
+
+            listItemsArbelaezDataDelete.append(data)
+        else :
+            data = {"id": str(documento["_id"])}
+            data["name"] = documento["name"]
+            data["description"] = documento["description"]
+            data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
+            data["price"] = documento["price"]
+            data["urlImage"] = documento["urlImage"]
+            data["isFavorite"] = userExist is not None
+            listItemsArbelaezData.append(data)
+
+    return {"data": listItemsArbelaezData, "dataDelete": listItemsArbelaezDataDelete}, 200
+        
+
+
+
+
+
+
 
 @app.route("/usersArbelaez", methods=["POST"])
 def create_user_arbelaez():   
@@ -195,37 +289,6 @@ def obtener_imagen(nombre):
     except Exception as e:
         return str(e)
 
-@app.route("/getListItems", methods=["GET"])
-def getListItems(): 
-    listItemsArbelaez = itemsArbelaez.find()
-    listCurrency1 = listCurrencyArbelaez.find()
-    listItemsArbelaezData = []
-    listItemsArbelaezDataDelete = []
-    for documento in listItemsArbelaez :
-        isDelete:bool = False
-        try :
-            isDelete = documento["isDelete"]
-        except :
-            print
-        
-        if isDelete :
-            data = {"id": str(documento["_id"])}
-            data["name"] = documento["name"]
-            data["description"] = documento["description"]
-            data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
-            data["price"] = documento["price"]
-            data["urlImage"] = documento["urlImage"]
-            listItemsArbelaezDataDelete.append(data)
-        else :
-            data = {"id": str(documento["_id"])}
-            data["name"] = documento["name"]
-            data["description"] = documento["description"]
-            data["currency"] = checkCurrency(listCurrency1, str(documento["idCurrency"]["_id"]))["currency"]
-            data["price"] = documento["price"]
-            data["urlImage"] = documento["urlImage"]
-            listItemsArbelaezData.append(data)
-
-    return {"data": listItemsArbelaezData, "dataDelete": listItemsArbelaezDataDelete}, 200
 
 def checkCurrency(listCurrency, idCurrency):
     currency = {"currency": "$"}
