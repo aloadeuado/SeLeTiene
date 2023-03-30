@@ -153,7 +153,14 @@ def login():
     if not emailExist :
         return jsonify({"error": "no fue posible autenticarse"}), 400
     if emailExist["password"] == data["password"] :
-        return json_util.dumps(emailExist), 200 
+        dataSend = {
+            "id": str(emailExist["_id"]),
+            "name": emailExist["name"],
+            "lastName": emailExist["lastName"],
+            "mobilePhone": emailExist["mobilePhone"],
+            "email": emailExist["email"]
+        }
+        return json_util.dumps(dataSend), 200 
     return jsonify({"error": "no fue posible autenticarse"}), 400
 
 @app.route("/createCurrency", methods=["POST"])
