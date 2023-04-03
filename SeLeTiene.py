@@ -46,8 +46,6 @@ def registro():
         return jsonify({"message": validation_messages["mobile_already_registered"][language]}), 400
 
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-
-    jwt_secret = generate_secret_key()
     
     user_data = {
         'name': name,
@@ -60,11 +58,37 @@ def registro():
         'isActive': True,
         'isEmailVerified': False,
         'isMobilePhoneVerified': False,
-        "jwtKey": jwt_secret
     }
 
     user.create(user_data)
     logging.info(f'Nuevo usuario registrado: {user_data}')
+
+    # Crear token JWT
+    jwt_payload = {
+        'id': str(user_data["_id"]),
+        'email': email,
+        'name': name,
+        "mobilePhone": mobilePhone,
+        'iat': datetime.datetime.utcnow(),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+    }
+
+    jwt_secret = generate_secret_key()
+
+    try:
+        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
+    except Exception as e:
+        app.logger.error(f'Error creating JWT token: {e}')
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 500
+    
+
+    try:
+        user.updateJwt(token, user_data["_id"])
+        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
+    except Exception as e:
+        app.logger.error(f'Error creating JWT token: {e}')
+        return jsonify({'message': validation_messages['jwt_creation_error'][language]}), 401
+    
     user_dataResponse = user_data
     user_dataResponse["id"] = str(user_data["_id"])
     del user_dataResponse["_id"]
@@ -75,24 +99,7 @@ def registro():
     del user_dataResponse["isActive"]
     del user_dataResponse["isEmailVerified"]
     del user_dataResponse["isMobilePhoneVerified"]
-    del user_dataResponse["jwtKey"]
 
-    # Crear token JWT
-    jwt_payload = {
-        'id': str(user_dataResponse["id"]),
-        'email': email,
-        'name': name,
-        "mobilePhone": mobilePhone,
-        'iat': datetime.datetime.utcnow(),
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
-    }
-
-    try:
-        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
-    except Exception as e:
-        app.logger.error(f'Error creating JWT token: {e}')
-        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 500
-    
     response_data = {
         'token': token,
         'data': user_dataResponse
@@ -121,14 +128,15 @@ def loginAuth():
     if not existing_user or not check_password(existing_user["password"], password):
         return jsonify({'message': validation_messages['invalid_credentials'][language]}), 401
 
+    onjectId = existing_user["_id"]
     user_data = {
-        'id': str(existing_user["_id"]),
+        'id': str(onjectId),
         'email': existing_user["email"],
         'name': existing_user["name"],
         'mobilePhone': existing_user["mobilePhone"],
     }
 
-    jwt_secret = existing_user["jwtKey"]
+    jwt_secret = generate_secret_key()
     jwt_payload = {
         'id': user_data['id'],
         'email': user_data['email'],
@@ -142,8 +150,16 @@ def loginAuth():
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
-        return jsonify({'message': validation_messages['jwt_creation_error'][language]}), 502
-
+        return jsonify({'message': validation_messages['jwt_creation_error'][language]}), 501
+    
+    try:
+        user = User(getEnviromentMongo(env))
+        user.updateJwt(token, onjectId)
+        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
+    except Exception as e:
+        app.logger.error(f'Error creating JWT token: {e}')
+        return jsonify({'message': validation_messages['jwt_creation_error'][language]}), 401
+    
     response_data = {
         'token': token,
         'data': user_data

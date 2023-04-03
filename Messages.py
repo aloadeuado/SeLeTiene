@@ -51,5 +51,10 @@ validation_messages = {
     'password_check': {
         'en': "Password must contain at least 8 characters, including uppercase, lowercase, and special characters.",
         'es': "La contraseña debe contener al menos 8 caracteres, incluyendo mayúsculas, minúsculas y caracteres especiales."
+    },
+    "env_required": {
+        "en": "The Env header is required.",
+        "es": "La cabecera Env es obligatoria."
     }
+    
 }

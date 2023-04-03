@@ -28,4 +28,6 @@ class User:
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
         return hashed_password.decode('utf-8')
 
+    def updateJwt(self, jwt, objectItemId) :
+        self.users.update_one({"_id": objectItemId}, { "$set": {"jwtKey": jwt}})
     
