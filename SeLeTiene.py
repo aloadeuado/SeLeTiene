@@ -13,6 +13,169 @@ import bcrypt
 ## Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+@app.route('/api/tempRegisterGoogle', methods=['POST'])
+def tempRegisterGoogle():
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({"message": validation_messages["env_required"][language]}), 400
+    if not language:
+        return jsonify({"message": validation_messages["missing_language_header"][language]}), 400
+
+    name = request.json.get('name', '').strip()
+    email = request.json.get('email', '').strip()
+    accessToken = request.json.get('accessToken', '').strip()
+
+    if not accessToken:
+        return jsonify({"message": validation_messages["missing_required_fields"][language]}), 400
+
+    user = User(getEnviromentMongo(env))
+
+    existing_user = user.find_by_accessToken(accessToken)
+
+    if existing_user:
+        user_dataResponse = existing_user
+        user_dataResponse["id"] = str(existing_user["_id"])
+        user_send = {
+            "name": user_dataResponse["name"],
+            "email": user_dataResponse["email"],
+            "id": user_dataResponse["id"],
+            "accessToken": user_dataResponse["accessToken"],
+        }
+
+        logging.info(f'Response: {user_dataResponse}')
+        return jsonify(user_send), 200
+
+    existing_email_user = user.find_by_email(email)
+
+    if existing_email_user:
+        user_data = {
+            'accessToken': accessToken,
+        }
+        user.update(existing_email_user["_id"], user_data)
+        user_dataResponse = existing_email_user
+        user_dataResponse["id"] = str(existing_email_user["_id"])
+        user_send = {
+            "name": user_dataResponse["name"],
+            "email": user_dataResponse["email"],
+            "id": user_dataResponse["id"],
+            "accessToken": user_dataResponse["accessToken"],
+        }
+
+        logging.info(f'Response: {user_send}')
+        return jsonify(user_send), 200
+
+    user_data = {
+        'name': name,
+        'email': email,
+        'password': "",
+        'appleId': "",
+        'dateRegister': datetime.datetime.utcnow(),
+        'isActive': False,
+        'isEmailVerified': False,
+        'isMobilePhoneVerified': False,
+        "isRegister": False,
+        "jwtKey": "",
+        "accessToken": accessToken
+    }
+
+    user.create(user_data)
+    logging.info(f'Nuevo usuario registrado: {user_data}')
+    user_dataResponse = user_data
+    user_dataResponse["id"] = str(user_data["_id"])
+    user_send = {
+            "name": user_dataResponse["name"],
+            "email": user_dataResponse["email"],
+            "id": user_dataResponse["id"],
+            "accessToken": user_dataResponse["accessToken"],
+        }
+
+    logging.info(f'Response: {user_send}')
+    return jsonify(user_send), 200
+
+
+
+@app.route('/api/tempRegisterApleId', methods=['POST'])
+def temp_register():
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({"message": validation_messages["env_required"][language]}), 400
+    if not language:
+        return jsonify({"message": validation_messages["missing_language_header"][language]}), 400
+
+    name = request.json.get('name', '').strip()
+    email = request.json.get('email', '').strip()
+    apple_id = request.json.get('appleId', '').strip()
+
+    if not apple_id:
+        return jsonify({"message": validation_messages["missing_required_fields"][language]}), 400
+
+    user = User(getEnviromentMongo(env))
+
+    existing_user = user.find_by_apple_id(apple_id)
+
+    if existing_user:
+        user_dataResponse = existing_user
+        user_dataResponse["id"] = str(existing_user["_id"])
+        user_send = {
+            "name": user_dataResponse["name"],
+            "email": user_dataResponse["email"],
+            "id": user_dataResponse["id"],
+            "appleId": user_dataResponse["appleId"],
+        }
+
+        logging.info(f'Response: {user_dataResponse}')
+        return jsonify(user_send), 200
+
+    existing_email_user = user.find_by_email(email)
+
+    if existing_email_user:
+        user_data = {
+            'appleId': apple_id,
+        }
+        user.update(existing_email_user["_id"], user_data)
+        user_dataResponse = existing_email_user
+        user_dataResponse["id"] = str(existing_email_user["_id"])
+        user_send = {
+            "name": user_dataResponse["name"],
+            "email": user_dataResponse["email"],
+            "id": user_dataResponse["id"],
+            "appleId": user_dataResponse["appleId"],
+        }
+        logging.info(f'Response: {user_dataResponse}')
+        return jsonify(user_send), 200
+
+    user_data = {
+        'name': name,
+        'email': email,
+        'password': "",
+        'appleId': apple_id,
+        'dateRegister': datetime.datetime.utcnow(),
+        'isActive': False,
+        'isEmailVerified': False,
+        'isMobilePhoneVerified': False,
+        "isRegister": False,
+        "jwtKey": "",
+        "accessToken": ""
+    }
+
+    user.create(user_data)
+    logging.info(f'Nuevo usuario registrado: {user_data}')
+    user_dataResponse = user_data
+    user_dataResponse["id"] = str(user_data["_id"])
+    user_send = {
+            "name": user_dataResponse["name"],
+            "email": user_dataResponse["email"],
+            "id": user_dataResponse["id"],
+            "appleId": user_dataResponse["appleId"],
+        }
+    logging.info(f'Response: {user_dataResponse}')
+    return jsonify(user_send), 200
+
+
 @app.route('/api/registro', methods=['POST'])
 def registro():
     language = request.headers.get('Language', 'en')
@@ -106,7 +269,7 @@ def registro():
     }
     logging.info(f'Response: {response_data}')
 
-    return jsonify(response_data), 201
+    return jsonify(response_data), 200
 
 @app.route('/api/login', methods=['POST'])
 def loginAuth():

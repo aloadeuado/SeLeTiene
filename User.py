@@ -31,3 +31,13 @@ class User:
     def updateJwt(self, jwt, objectItemId) :
         self.users.update_one({"_id": objectItemId}, { "$set": {"jwtKey": jwt}})
     
+    def find_by_apple_id(self, apple_id):
+        return self.users.find_one({'appleId': apple_id})
+
+    def find_by_accessToken(self, accessToken):
+        return self.users.find_one({'accessToken': accessToken})
+    
+    def update(self, user_id, user_data):
+        result = self.users.update_one({"_id": ObjectId(user_id)}, {"$set": user_data})
+        return result.modified_count > 0
+    
