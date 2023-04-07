@@ -55,6 +55,18 @@ validation_messages = {
     "env_required": {
         "en": "The Env header is required.",
         "es": "La cabecera Env es obligatoria."
+    },
+    "invalid_access_token": {
+        "en": "Invalid access token",
+        "es": "Token de acceso inválido"
+    },
+    "invalid_apple_id": {
+        "en": "Apple ID is required",
+        "es": "El Apple ID es requerido"
+    },
+    'missing_social_id': {
+        'en': 'Apple ID or Google ID is required', 
+        'es': 'Se requiere el Apple ID o Google ID'
     }
     
 }

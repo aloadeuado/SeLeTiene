@@ -34,8 +34,8 @@ class User:
     def find_by_apple_id(self, apple_id):
         return self.users.find_one({'appleId': apple_id})
 
-    def find_by_accessToken(self, accessToken):
-        return self.users.find_one({'accessToken': accessToken})
+    def find_by_accessToken(self, googleId):
+        return self.users.find_one({'googleId': googleId})
     
     def update(self, user_id, user_data):
         result = self.users.update_one({"_id": ObjectId(user_id)}, {"$set": user_data})
