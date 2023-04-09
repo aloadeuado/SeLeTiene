@@ -18,9 +18,9 @@ class User:
         return self.users.find_one({'mobilePhone': mobile_phone})
     
     def find_by_id(self, id):
-        result = self.collection.find_one({"_id": ObjectId(id)})
+        result = self.users.find_one({"_id": ObjectId(id)})
         if result:
-            return UserSchema().load(result)
+            return result
         return None
 
     def hash_password(self, password):

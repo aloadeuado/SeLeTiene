@@ -10,9 +10,120 @@ from Messages import *
 from User import *
 import logging
 import bcrypt
+import random
 
 ## Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+@app.route('/api/verificationCodeEmailChangePassword/<id>', methods=['POST'])
+def verificationCodeEmailChangePassword(id):
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
+    if not language:
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
+    
+    code = request.json.get("code", "")
+    password = request.json.get("password", "")
+
+    if not code:
+        return jsonify({"error": validation_messages["missing_code"][language]}), 400
+    if not id:
+        return jsonify({"error": validation_messages["missing_id"][language]}), 400
+    if not password:
+        return jsonify({"error": validation_messages["missing_password"][language]}), 400
+    
+    user = User(getEnviromentMongo(env))
+    existing_email = user.find_by_id(id)
+    if not existing_email :
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
+    if existing_email["resetPasswordCodeEmil"] != code :
+        return jsonify({'error': validation_messages['verification_failed'][language]}), 400
+    
+    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    user.update(id, {"resetPasswordCodeEmil": "", "password": hashed_password})
+
+    return {"message": validation_messages["password_updated"][language]}, 200
+
+
+@app.route('/api/sendCodeEmailChangePassword/<id>', methods=['GET'])
+def sendCodeEmailChangePassword(id):
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
+    if not language:
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
+
+    if not id:
+        return jsonify({"error": validation_messages["missing_id"][language]}), 400
+    
+    user = User(getEnviromentMongo(env))
+    existing_email = user.find_by_id(id)
+    if not existing_email :
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
+    
+    code = random.randint(10000, 99999)
+    user.update(id, {"resetPasswordCodeEmil": f"{code}"})
+    sendEmail(validation_messages['reset_code'][language].replace("{code}", f"{code}"), validation_messages['reset_code_instructions'][language].replace("{code}", f"{code}"), existing_email["email"])
+    return {"message": validation_messages["send_email_full"][language]}, 200
+
+@app.route('/api/sendEmailVerification/<id>', methods=['GET'])
+def sendEmailVerification(id):
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
+    if not language:
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
+
+    if not id:
+        return jsonify({"error": validation_messages["missing_id"][language]}), 400
+    
+    user = User(getEnviromentMongo(env))
+    existing_email = user.find_by_id(id)
+    if not existing_email :
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
+    
+    code = random.randint(10000, 99999)
+    user.update(id, {"verificationCodeEmil": f"{code}"})
+    sendEmail(validation_messages['verification_code_send'][language], validation_messages['code_generated'][language].replace("{code}", f"{code}"), existing_email["email"])
+    return {"message": validation_messages["send_email_full"][language]}, 200
+
+
+@app.route('/api/verifiedEmailVerification/<id>/<code>', methods=['GET'])
+def verifiedEmailVerification(id, code):
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
+    if not language:
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
+
+    if not code:
+        return jsonify({"error": validation_messages["missing_code"][language]}), 400
+    
+    if not id:
+        return jsonify({"error": validation_messages["missing_id"][language]}), 400
+    
+    user = User(getEnviromentMongo(env))
+    existing_email = user.find_by_id(id)
+    if not existing_email :
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
+    
+    if existing_email["verificationCodeEmil"] != code :
+        return jsonify({'error': validation_messages['verification_failed'][language]}), 400
+    
+    user.update(id, {"isEmailVerified": True})
+    code = random.randint(10000, 99999)
+    user.update(id, {"verificationCodeEmil": ""})
+
+    return {"message": validation_messages["email_verified"][language]}, 200
 
 @app.route('/api/tempRegisterGoogle', methods=['POST'])
 def tempRegisterGoogle():

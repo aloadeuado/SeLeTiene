@@ -67,6 +67,46 @@ validation_messages = {
     'missing_social_id': {
         'en': 'Apple ID or Google ID is required', 
         'es': 'Se requiere el Apple ID o Google ID'
+    },'missing_id': {
+        'en': 'ID cannot be empty', 
+        'es': 'El ID no puede estar vacío'
+    }, "user_no_exist": {
+        'en': 'User not found', 
+        'es': 'Usuario no encontrado'
+    }, "send_email_full": {
+        'en': 'Email sent successfully', 
+        'es': 'Correo electrónico enviado correctamente'
+    },"code_generated": {
+            "en": "Verification code generated successfully: {code}",
+            "es": "Código de verificación generado exitosamente: {code}"
+        },
+    "verification_code_send": {
+            "en": "Verification code generated successfully",
+            "es": "Condigo de verificacion Essenza"
+        },'missing_code': {
+        'en': 'CODE cannot be empty', 
+        'es': 'El CODE no puede estar vacío'
+    },"verification_failed": {
+            "en": "Verification failed: code does not match",
+            "es": "Verificación fallida: el código no coincide"
+        }, "email_verified": {
+            "en": "Email verified successfully",
+            "es": "Email verificado exitosamente"
+        },"reset_code_instructions": {
+            "en": "Enter this code in the app to reset your password: {code}",
+            "es": "Ingresa este código en la aplicación para restablecer tu contraseña: {code}"
+        },"reset_code_generated": {
+            "en": "Reset code generated successfully",
+            "es": "Código de restablecimiento generado exitosamente"
+        },"reset_code": {
+            "en": "Password reset code: {code}",
+            "es": "Código para restablecer la contraseña: {code}"
+        },"missing_password": {
+            "en": "Password is required",
+            "es": "La contraseña es necesaria"
+    },"password_updated": {
+        "en": "Password updated successfully",
+        "es": "Contraseña actualizada correctamente"
     }
     
 }
