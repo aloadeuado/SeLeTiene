@@ -15,6 +15,64 @@ import random
 ## Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+
+@app.route('/api/getUser', methods=['GET'])
+def get_user():
+    
+    language = request.headers.get('Language', 'en')
+    env = request.headers.get('Env')
+    token = request.headers.get('Token', '')
+
+    if not env:
+        logging.error(f"Error: Env header is required - Request: {request.url}")
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
+    if not language:
+        logging.error(f"Error: Accept-Language header is missing - Request: {request.url}")
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
+    if not token:
+        logging.error(f"Error: token header is missing - Request: {request.url}")
+        return jsonify({"error": validation_messages["invalid_jwt_token"][language]}), 400
+    # Validar que el ID no esté vacío
+    if not id:
+        error_message = {"error": validation_messages["missing_id"][language]}
+        logging.error(f"Error: ID cannot be empty - Request: {request.url} - Response: {error_message}")
+        return jsonify(error_message), 400
+
+    user_dic = getDataJwt(token)
+    if not user_dic :
+        error_message = {"error": validation_messages["user_no_exist"][language]}
+        logging.error(f"Error: User not found - Request: {request.url} - Response: {error_message}")
+        return jsonify(error_message), 401
+    
+    try:
+        # Buscar el usuario por ID
+        userData = User(getEnviromentMongo(env))
+        user = userData.get_user_validate_token(user_dic["id"], token)
+
+        if user:
+            # Si se encontró el usuario, devolver sus datos
+            response = {
+                "id": str(user["_id"]),
+                "name": user["name"],
+                "mobilePhone": user["mobilePhone"],
+                "email": user["email"],
+                "isEmailVerified": user["isEmailVerified"]
+            }
+            logging.info(f"Success - Request: {request.url} - Response: {response}")
+            return jsonify(response), 200
+        else:
+            # Si no se encontró el usuario, devolver un mensaje de error
+            error_message = {"error": validation_messages["user_no_exist"][language]}
+            logging.error(f"Error: User not found - Request: {request.url} - Response: {error_message}")
+            return jsonify(error_message), 401
+    except Exception as e:
+        # En caso de error, devolver un mensaje de error genérico
+        error_message = {"error": validation_messages["generic_error"][language]}
+        logging.error(f"Error: {str(e)} - Request: {request.url} - Response: {error_message}")
+        return jsonify(error_message), 400
+
+
+
 @app.route('/api/verificationCodeEmailChangePassword/<id>', methods=['POST'])
 def verificationCodeEmailChangePassword(id):
     language = request.headers.get('Language', 'en')
@@ -416,6 +474,13 @@ def registro():
         'data': user_send
     }
     logging.info(f'Response: {response_data}')
+
+    try :
+        code = random.randint(10000, 99999)
+        user.update(id, {"verificationCodeEmil": f"{code}"})
+        sendEmail(validation_messages['verification_code_send'][language], validation_messages['code_generated'][language].replace("{code}", f"{code}"), user_send["email"])
+    except Exception as e :    
+        app.logger.error(f'Error creating JWT token: {e}')
 
     return jsonify(response_data), 200
 

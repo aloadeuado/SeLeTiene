@@ -41,3 +41,7 @@ class User:
         result = self.users.update_one({"_id": ObjectId(user_id)}, {"$set": user_data})
         return result.modified_count > 0
     
+    def get_user_validate_token(self, id, token):
+        result = self.users.find_one({"_id": ObjectId(id), "jwtKey": token})
+        return result
+    

@@ -4,6 +4,7 @@ import bcrypt
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import jwt
 
 dbQa = client.get_database("SeLeTieneQa")
 dbPrd = client.get_database("SeLeTiene")
@@ -26,7 +27,7 @@ def getEnviromentMongo(env):
         raise ValueError("Invalid environment")
     
 def generate_secret_key():
-    return secrets.token_hex(32)
+    return SERVICE_KEY
 
 def check_password(hashed_password, password):
     password_bytes = password.encode('utf-8') if isinstance(password, str) else str(password).encode('utf-8')
@@ -53,3 +54,11 @@ def sendEmail(subject, body, toEmail) :
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, toEmail, message.as_string())
+
+def getDataJwt(token) :
+    try :
+        secret_key = generate_secret_key()
+        decoded_jwt = jwt.decode(token, secret_key, algorithms=['HS256'])
+        return decoded_jwt
+    except Exception as e:
+        return None

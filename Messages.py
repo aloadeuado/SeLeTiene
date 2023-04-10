@@ -107,6 +107,12 @@ validation_messages = {
     },"password_updated": {
         "en": "Password updated successfully",
         "es": "Contraseña actualizada correctamente"
+    },"invalid_jwt_token": {
+        "en": "Invalid JWT token",
+        "es": "Token JWT no válido"
+    },"generic_error": {
+        "en": "An error has occurred. Please try again later.",
+        "es": "Ha ocurrido un error. Por favor, intenta de nuevo más tarde."
     }
     
 }
