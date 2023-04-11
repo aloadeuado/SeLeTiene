@@ -2,6 +2,9 @@ validation_messages = {
     'required_fields': {
         'en': "The fields name, mobilePhone, and email are required.",
         'es': "Los campos name, mobilePhone y email son obligatorios."
+    },'required_fields_email': {
+        'en': "The fields email are required.",
+        'es': "Los campos email son obligatorios."
     },
     'email_format': {
         'en': "The email format is incorrect.",
