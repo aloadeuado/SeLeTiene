@@ -4,10 +4,10 @@ from flask import request, jsonify
 from app import app
 from bson import ObjectId
 from Configuration import *
-from Util import *
-from Validators import *
-from Messages import *
-from User import *
+from Util.Util import *
+from Util.Validators import *
+from Util.Messages import *
+from Data.User import *
 import logging
 import bcrypt
 import random

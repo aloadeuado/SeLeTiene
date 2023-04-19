@@ -12,4 +12,4 @@ environment = {
 SMTP_HOST = 'smtp.gmail.com'
 SMPT_PORT = 587
 SENDER_EMAIL = "essenzasocial88@gmail.com"
-SENDER_PASSWORD = "nwgluqcuzypfwydi"
+SENDER_PASSWORD = "moqhxrgwcebmhbhp"

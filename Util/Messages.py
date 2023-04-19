@@ -116,6 +116,15 @@ validation_messages = {
     },"generic_error": {
         "en": "An error has occurred. Please try again later.",
         "es": "Ha ocurrido un error. Por favor, intenta de nuevo más tarde."
+    }, 'missing_fields': {
+        'en': "The following fields are missing: {fields}",
+        'es': "Faltan los siguientes campos: {fields}"
+    }, 'service_already_exists': {
+        'en': "The service already exists.",
+        'es': "El servicio ya existe."
+    },'no_services_registered': {
+        'en': "No services registered.",
+        'es': "No hay servicios registrados."
     }
     
 }

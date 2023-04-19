@@ -19,9 +19,10 @@ logger.addHandler(handler)
 app = Flask(__name__)
 
 
-from SeLeTiene import *
-from ArbelaezApp import *
-
+from Controllers.SeLeTiene import *
+from Controllers.ArbelaezApp import *
+from Controllers.ComparateItems import *
+from Controllers.ServicesApi import *
 
 
 if __name__ == '__main__':
