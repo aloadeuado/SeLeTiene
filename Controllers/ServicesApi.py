@@ -2,7 +2,7 @@ import os
 import uuid
 import jwt as jwt
 import datetime
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from Data.Service import Service
 from app import app
 from bson import ObjectId
@@ -88,3 +88,13 @@ def getServices():
     return {"data": listServicesData}, 200
 
 
+@app.route('/image/<nombre>', methods=['GET'])
+def obtener_imagen(nombre):
+    try:
+        # Ruta completa del archivo de imagen
+        ruta = f"uploads/{nombre}"
+        
+        # Devolver la imagen
+        return send_file(ruta, mimetype='image/jpeg')
+    except Exception as e:
+        return str(e)
