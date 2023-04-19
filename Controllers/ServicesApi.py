@@ -92,7 +92,7 @@ def getServices():
 def obtener_imagen_full(nombre):
     try:
         # Ruta completa del archivo de imagen
-        ruta = f"uploads/{nombre}"
+        ruta = f"image/{nombre}"
         
         # Devolver la imagen
         return send_file(ruta, mimetype='image/jpeg')
