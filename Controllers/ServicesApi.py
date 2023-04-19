@@ -89,7 +89,7 @@ def getServices():
 
 
 @app.route('/image/<nombre>', methods=['GET'])
-def obtener_imagen(nombre):
+def obtener_imagen_full(nombre):
     try:
         # Ruta completa del archivo de imagen
         ruta = f"uploads/{nombre}"
