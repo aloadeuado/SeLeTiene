@@ -12,6 +12,7 @@ dbArbelaez = clientArbelaez.get_database("ArbelaezApp")
 
 usersArbelaez = dbArbelaez["Users"]
 itemsArbelaez = dbArbelaez["Items"]
+carsArbelaez = dbArbelaez["Cars"]
 listCurrencyArbelaez = dbArbelaez["ListCurrency"]
 itemsFavorites = dbArbelaez["ItemsFavorites"]
 
@@ -284,6 +285,136 @@ def deleteItem():
         return jsonify({"error": "el item no existe"}), 400 
     itemsArbelaez.update_one({"_id": onjectId}, { "$set": {"isDelete": True} })
     return jsonify({"message": "Item Eliminado"}), 200
+
+@app.route("/addItemCar", methods=["POST"])
+def addItemCar(): 
+    data = request.get_json()
+    user_id = data.get("user_id", "")
+    item_id = data.get("item_id", "")
+    count = data.get("count", "")
+
+    if user_id == "" :
+        return jsonify({"error": "el campo id no puede ir vacio"}), 400
+    if item_id == "" :
+        return jsonify({"error": "el campo id no puede ir vacio"}), 400
+    if count == 0 :
+        return jsonify({"error": "el campo count no puede ir 0"}), 400
+    
+    user = usersArbelaez.find_one({"_id": ObjectId(user_id)})
+    if not user :
+        return jsonify({"error": "El usuario no existe"}), 400
+    
+    onjectIdItem = ObjectId(item_id)
+    item = itemsArbelaez.find_one({"_id": onjectIdItem})
+    if not item :
+        return jsonify({"error": "El item no existe"}), 400
+    
+    carsIsExist = carsArbelaez.find_one({"user_id":user_id, "item": item})
+    if carsIsExist :
+        carsArbelaez.update_one({"_id": carsIsExist["_id"]}, { "$set": {"count": carsIsExist["count"] + count}})
+        itemsCars = carsArbelaez.find({"user_id": user_id, "state":0})
+
+        itemsCarsData = []
+        totalPrice = 0
+        currency = "$"
+        for documento in itemsCars :
+            itemSend = {}
+            itemSend["id"] = str(documento["item"]["_id"])
+            itemSend["name"] = str(documento["item"]["name"])
+            itemSend["description"] = str(documento["item"]["description"])
+            itemSend["price"] = str(documento["item"]["price"])
+            itemSend["urlImage"] = str(documento["item"]["urlImage"])
+
+            data = {"id": str(documento["_id"])}
+            data["user_id"] = documento["user_id"]
+            data["item"] = itemSend
+            data["count"] = documento["count"]
+            totalPrice = totalPrice + (documento["price_item"] * documento["count"])
+            currency = documento["currency_item"]
+            itemsCarsData.append(data)
+        return {"data": {"listItems":itemsCarsData, "totalPrice": totalPrice, "currency": currency}}, 200
+    
+    # state 0 is state in peoding and 1 is dispatch
+    car = {
+        "user_id": user_id,
+        "item": item,
+        "price_item": item["price"],
+        "currency_item": item["idCurrency"]["currency"],
+        "count": count,
+        "state":0
+        }
+
+    carsArbelaez.insert_one(car)
+
+    itemsCars = carsArbelaez.find({"user_id": user_id, "state":0})
+
+    itemsCarsData = []
+    totalPrice = 0
+    currency = "$"
+    for documento in itemsCars :
+            itemSend = {}
+            itemSend["id"] = str(documento["item"]["_id"])
+            itemSend["name"] = str(documento["item"]["name"])
+            itemSend["description"] = str(documento["item"]["description"])
+            itemSend["price"] = str(documento["item"]["price"])
+            itemSend["urlImage"] = str(documento["item"]["urlImage"])
+
+            data = {"id": str(documento["_id"])}
+            data["user_id"] = documento["user_id"]
+            data["item"] = itemSend
+            data["count"] = documento["count"]
+            totalPrice = totalPrice + (documento["price_item"] * documento["count"])
+            currency = documento["currency_item"]
+            itemsCarsData.append(data)
+    return {"data": {"listItems":itemsCarsData, "totalPrice": totalPrice, "currency": currency}}, 200
+    
+
+@app.route("/removerItemCar", methods=["POST"])
+def removerItemCar(): 
+    data = request.get_json()
+    user_id = data.get("user_id", "")
+    item_id = data.get("item_id", "")
+    count = 1
+
+    if user_id == "" :
+        return jsonify({"error": "el campo id no puede ir vacio"}), 400
+    if item_id == "" :
+        return jsonify({"error": "el campo id no puede ir vacio"}), 400
+
+    onjectIdItem = ObjectId(item_id)
+    item = itemsArbelaez.find_one({"_id": onjectIdItem})
+    if not item :
+        return jsonify({"error": "El item no existe"}), 400
+    carsIsExist = carsArbelaez.find_one({"user_id":user_id, "item": item})
+    if not carsIsExist :
+        return jsonify({"error": "no exite este item en el carrito"}), 400
+    if carsIsExist["count"] == 1 :
+        carsArbelaez.delete_many({"user_id":user_id, "item": item})
+    
+    carsArbelaez.update_one({"_id": carsIsExist["_id"]}, { "$set": {"count": carsIsExist["count"] - count}})
+    itemsCars = carsArbelaez.find({"user_id": user_id, "state":0})
+
+    itemsCarsData = []
+    totalPrice = 0
+    currency = "$"
+    for documento in itemsCars :
+            itemSend = {}
+            itemSend["id"] = str(documento["item"]["_id"])
+            itemSend["name"] = str(documento["item"]["name"])
+            itemSend["description"] = str(documento["item"]["description"])
+            itemSend["price"] = str(documento["item"]["price"])
+            itemSend["urlImage"] = str(documento["item"]["urlImage"])
+
+            data = {"id": str(documento["_id"])}
+            data["user_id"] = documento["user_id"]
+            data["item"] = itemSend
+            data["count"] = documento["count"]
+            totalPrice = totalPrice + (documento["price_item"] * documento["count"])
+            currency = documento["currency_item"]
+            itemsCarsData.append(data)
+    return {"data": {"listItems":itemsCarsData, "totalPrice": totalPrice, "currency": currency}}, 200
+
+
 
 @app.route('/uploads/<nombre>', methods=['GET'])
 def obtener_imagen(nombre):
