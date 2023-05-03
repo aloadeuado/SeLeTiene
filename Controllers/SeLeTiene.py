@@ -545,7 +545,7 @@ def loginAuth():
     }
 
     logging.info(f'Response: {response_data}')
-    return jsonify(response_data), 200
+    return response_data, 200
 
 @app.route('/api/loginApple', methods=['POST'])
 def loginApple():
