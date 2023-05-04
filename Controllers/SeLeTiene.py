@@ -540,12 +540,12 @@ def loginAuth():
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
-        'token': token,
+        'token': f"{token}",
         'data': user_data
     }
 
     logging.info(f'Response: {response_data}')
-    return response_data, 200
+    return jsonify(response_data), 200
 
 @app.route('/api/loginApple', methods=['POST'])
 def loginApple():
