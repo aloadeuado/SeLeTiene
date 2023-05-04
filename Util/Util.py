@@ -123,7 +123,7 @@ def validateHeadersToken(request, logging) :
     user_dic = getDataJwt(token)
     if not user_dic :
         error_message = {"error": validation_messages["user_no_exist"][language]}
-        logging.error(f"Error: User not found - Request: {url} - Response: {error_message}")
+        logging.error(f"Error: User not found - Request: {request.url} - Response: {error_message}")
         return {"error": validation_messages["user_no_exist"][language]}
     
     try:
