@@ -534,7 +534,6 @@ def loginAuth():
     try:
         user = User(getEnviromentMongo(env))
         user.updateJwt(token, onjectId)
-        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return {'error': validation_messages['jwt_creation_error'][language]}, 401
@@ -545,7 +544,7 @@ def loginAuth():
     }
 
     logging.info(f'Response: {response_data}')
-    return response_data, 200
+    return jsonify(response_data), 200
 
 @app.route('/api/loginApple', methods=['POST'])
 def loginApple():
