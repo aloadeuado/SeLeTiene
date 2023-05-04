@@ -473,7 +473,7 @@ def registro():
     
 
     response_data = {
-        'token': token,
+        'token': f"{token}",
         'data': user_send
     }
     logging.info(f'Response: {response_data}')
@@ -600,7 +600,7 @@ def loginApple():
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
-        'token': token,
+        'token': f"{token}",
         'data': user_data
     }
 
@@ -657,7 +657,7 @@ def loginGoogle():
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
-        'token': token,
+        'token': f"{token}",
         'data': user_data
     }
 
