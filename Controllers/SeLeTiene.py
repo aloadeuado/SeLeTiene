@@ -25,24 +25,24 @@ def get_user():
 
     if not env:
         logging.error(f"Error: Env header is required - Request: {request.url}")
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
         logging.error(f"Error: Accept-Language header is missing - Request: {request.url}")
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
     if not token:
         logging.error(f"Error: token header is missing - Request: {request.url}")
-        return {"error": validation_messages["invalid_jwt_token"][language]}, 400
+        return jsonify({"error": validation_messages["invalid_jwt_token"][language]}), 400
     # Validar que el ID no esté vacío
     if not id:
         error_message = {"error": validation_messages["missing_id"][language]}
         logging.error(f"Error: ID cannot be empty - Request: {request.url} - Response: {error_message}")
-        return error_message, 400
+        return jsonify(error_message), 400
 
     user_dic = getDataJwt(token)
     if not user_dic :
         error_message = {"error": validation_messages["user_no_exist"][language]}
         logging.error(f"Error: User not found - Request: {request.url} - Response: {error_message}")
-        return error_message, 401
+        return jsonify(error_message), 401
     
     try:
         # Buscar el usuario por ID
@@ -59,17 +59,17 @@ def get_user():
                 "isEmailVerified": user["isEmailVerified"]
             }
             logging.info(f"Success - Request: {request.url} - Response: {response}")
-            return response, 200
+            return jsonify(response), 200
         else:
             # Si no se encontró el usuario, devolver un mensaje de error
             error_message = {"error": validation_messages["user_no_exist"][language]}
             logging.error(f"Error: User not found - Request: {request.url} - Response: {error_message}")
-            return error_message, 401
+            return jsonify(error_message), 401
     except Exception as e:
         # En caso de error, devolver un mensaje de error genérico
         error_message = {"error": validation_messages["generic_error"][language]}
         logging.error(f"Error: {str(e)} - Request: {request.url} - Response: {error_message}")
-        return error_message, 400
+        return jsonify(error_message), 400
 
 
 
@@ -79,27 +79,27 @@ def verificationCodeEmailChangePassword():
     env = request.headers.get('Env')
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
     
     code = request.json.get("code", "")
     password = request.json.get("password", "")
     email = request.json.get("email", "")
 
     if not code:
-        return {"error": validation_messages["missing_code"][language]}, 400
+        return jsonify({"error": validation_messages["missing_code"][language]}), 400
     if not email:
-        return {"error": validation_messages["required_fields_email"][language]}, 400
+        return jsonify({"error": validation_messages["required_fields_email"][language]}), 400
     if not password:
-        return {"error": validation_messages["missing_password"][language]}, 400
+        return jsonify({"error": validation_messages["missing_password"][language]}), 400
     
     user = User(getEnviromentMongo(env))
     existing_email = user.find_by_email(email)
     if not existing_email :
-        return {'error': validation_messages['user_no_exist'][language]}, 400
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
     if existing_email["resetPasswordCodeEmil"] != code :
-        return {'error': validation_messages['verification_failed'][language]}, 400
+        return jsonify({'error': validation_messages['verification_failed'][language]}), 400
     
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
     user.update(str(existing_email["_id"]), {"resetPasswordCodeEmil": "", "password": hashed_password})
@@ -114,18 +114,18 @@ def sendCodeEmailChangePassword():
 
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
     
     email = request.json.get("email", "")
     if not email:
-        return {"error": validation_messages["required_fields_email"][language]}, 400
+        return jsonify({"error": validation_messages["required_fields_email"][language]}), 400
     
     user = User(getEnviromentMongo(env))
     existing_email = user.find_by_email(email)
     if not existing_email :
-        return {'error': validation_messages['user_no_exist'][language]}, 400
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
     
     code = random.randint(10000, 99999)
     user.update(str(existing_email["_id"]), {"resetPasswordCodeEmil": f"{code}"})
@@ -138,17 +138,17 @@ def sendEmailVerification(id):
     env = request.headers.get('Env')
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
 
     if not id:
-        return {"error": validation_messages["missing_id"][language]}, 400
+        return jsonify({"error": validation_messages["missing_id"][language]}), 400
     
     user = User(getEnviromentMongo(env))
     existing_email = user.find_by_id(id)
     if not existing_email :
-        return {'error': validation_messages['user_no_exist'][language]}, 400
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
     
     code = random.randint(10000, 99999)
     user.update(id, {"verificationCodeEmil": f"{code}"})
@@ -162,23 +162,23 @@ def verifiedEmailVerification(id, code):
     env = request.headers.get('Env')
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
 
     if not code:
-        return {"error": validation_messages["missing_code"][language]}, 400
+        return jsonify({"error": validation_messages["missing_code"][language]}), 400
     
     if not id:
-        return {"error": validation_messages["missing_id"][language]}, 400
+        return jsonify({"error": validation_messages["missing_id"][language]}), 400
     
     user = User(getEnviromentMongo(env))
     existing_email = user.find_by_id(id)
     if not existing_email :
-        return {'error': validation_messages['user_no_exist'][language]}, 400
+        return jsonify({'error': validation_messages['user_no_exist'][language]}), 400
     
     if existing_email["verificationCodeEmil"] != code :
-        return {'error': validation_messages['verification_failed'][language]}, 400
+        return jsonify({'error': validation_messages['verification_failed'][language]}), 400
     
     user.update(id, {"isEmailVerified": True})
     code = random.randint(10000, 99999)
@@ -192,16 +192,16 @@ def tempRegisterGoogle():
     env = request.headers.get('Env')
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
 
     name = request.json.get('name', '').strip()
     email = request.json.get('email', '').strip()
     googleId = request.json.get('googleId', '').strip()
 
     if not googleId:
-        return {"error": validation_messages["missing_required_fields"][language]}, 400
+        return jsonify({"error": validation_messages["missing_required_fields"][language]}), 400
 
     user = User(getEnviromentMongo(env))
 
@@ -219,7 +219,7 @@ def tempRegisterGoogle():
         }
 
         logging.info(f'Response: {user_dataResponse}')
-        return user_send, 200
+        return jsonify(user_send), 200
 
     existing_email_user = user.find_by_email(email)
 
@@ -239,7 +239,7 @@ def tempRegisterGoogle():
         }
 
         logging.info(f'Response: {user_send}')
-        return user_send, 200
+        return jsonify(user_send), 200
 
     user_data = {
         'name': name,
@@ -269,7 +269,7 @@ def tempRegisterGoogle():
         }
 
     logging.info(f'Response: {user_send}')
-    return user_send, 200
+    return jsonify(user_send), 200
 
 
 
@@ -279,16 +279,16 @@ def temp_register():
     env = request.headers.get('Env')
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
     if not language:
-        return {"error": validation_messages["missing_language_header"][language]}, 400
+        return jsonify({"error": validation_messages["missing_language_header"][language]}), 400
 
     name = request.json.get('name', '').strip()
     email = request.json.get('email', '').strip()
     apple_id = request.json.get('appleId', '').strip()
 
     if not apple_id:
-        return {"error": validation_messages["missing_required_fields"][language]}, 400
+        return jsonify({"error": validation_messages["missing_required_fields"][language]}), 400
 
     user = User(getEnviromentMongo(env))
 
@@ -306,7 +306,7 @@ def temp_register():
         }
 
         logging.info(f'Response: {user_dataResponse}')
-        return user_send, 200
+        return jsonify(user_send), 200
 
     existing_email_user = user.find_by_email(email)
 
@@ -325,7 +325,7 @@ def temp_register():
             "appleId": user_dataResponse["appleId"],
         }
         logging.info(f'Response: {user_dataResponse}')
-        return user_send, 200
+        return jsonify(user_send), 200
 
     user_data = {
         'name': name,
@@ -354,7 +354,7 @@ def temp_register():
             "appleId": user_dataResponse["appleId"],
         }
     logging.info(f'Response: {user_dataResponse}')
-    return user_send, 200
+    return jsonify(user_send), 200
 
 
 @app.route('/api/registro', methods=['POST'])
@@ -363,7 +363,7 @@ def registro():
     env = request.headers.get('Env')
 
     if not env:
-        return {"error": validation_messages["env_required"][language]}, 400
+        return jsonify({"error": validation_messages["env_required"][language]}), 400
 
     name = request.json.get('name', '').strip()
     mobilePhone = request.json.get('mobilePhone', '').strip()
@@ -373,10 +373,10 @@ def registro():
     appleId = request.json.get('appleId', '').strip()
 
     if not name or not mobilePhone or not email or not password:
-        return {"error": validation_messages["missing_required_fields"][language]}, 400
+        return jsonify({"error": validation_messages["missing_required_fields"][language]}), 400
 
     if not validar_email(email):
-        return {"error": validation_messages["invalid_email_format"][language]}, 400
+        return jsonify({"error": validation_messages["invalid_email_format"][language]}), 400
 
     user = User(getEnviromentMongo(env))
 
@@ -389,12 +389,12 @@ def registro():
     if existing_user_email:
         user_read = existing_user_email
         if existing_user_email.get("isRegister", True) or existing_user_email.get("isActive", True):
-            return {"error": validation_messages["email_already_registered"][language]}, 400
+            return jsonify({"error": validation_messages["email_already_registered"][language]}), 400
         
     if existing_user_mobile:
         user_read = existing_user_mobile
         if existing_user_mobile.get("isRegister", True) or existing_user_mobile.get("isActive", True):
-            return {"error": validation_messages["mobile_already_registered"][language]}, 400
+            return jsonify({"error": validation_messages["mobile_already_registered"][language]}), 400
     
 
     user_send = {}
@@ -404,7 +404,7 @@ def registro():
             user.update(existing_user_email["_id"], {"googleId": googleId, "isRegister": True, "isActive": True, "name": name, "mobilePhone": mobilePhone, "password": hashed_password })
         except Exception as e:
             app.logger.error(f'Error creating JWT token: {e}')
-            return {'error': validation_messages['invalid_access_token'][language]}, 401
+            return jsonify({'error': validation_messages['invalid_access_token'][language]}), 401
         
         objectId = user_read["_id"]
         user_send["id"] = str(user_read["_id"])
@@ -417,7 +417,7 @@ def registro():
             user.update(existing_user_email["_id"], {"appleId": appleId, "isRegister": True, "isActive": True, "name": name, "mobilePhone": mobilePhone, "password": hashed_password })
         except Exception as e:
             app.logger.error(f'Error creating JWT token: {e}')
-            return {'error': validation_messages['invalid_apple_id'][language]}, 401
+            return jsonify({'error': validation_messages['invalid_apple_id'][language]}), 401
         
         objectId = user_read["_id"]
         user_send["id"] = str(user_read["_id"])
@@ -451,7 +451,7 @@ def registro():
         logging.info(f'Nuevo usuario registrado: {user_data}')
     else :
         app.logger.error(validation_messages['missing_social_id'][language])
-        return {'error': validation_messages['missing_social_id'][language]}, 401
+        return jsonify({'error': validation_messages['missing_social_id'][language]}), 401
     # Crear token JWT
     jwt_payload = {
         'id': user_send["id"],
@@ -469,7 +469,7 @@ def registro():
         user.updateJwt(token, objectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
-        return {'error': validation_messages['jwt_creation_error'][language]}, 401
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
 
     response_data = {
@@ -485,7 +485,7 @@ def registro():
     except Exception as e :    
         app.logger.error(f'Error creating JWT token: {e}')
 
-    return response_data, 200
+    return jsonify(response_data), 200
 
 @app.route('/api/login', methods=['POST'])
 def loginAuth():
@@ -493,19 +493,19 @@ def loginAuth():
     env = request.headers.get('Env')
 
     if not env:
-        return {'error': validation_messages['missing_env_header'][language]}, 400
+        return jsonify({'error': validation_messages['missing_env_header'][language]}), 400
 
     email = request.json.get('email', '').strip()
     password = request.json.get('password', '').strip()
 
     if not email or not password:
-        return {'error': validation_messages['required_fields'][language]}, 400
+        return jsonify({'error': validation_messages['required_fields'][language]}), 400
 
     user = User(getEnviromentMongo(env))
     existing_user = user.find_by_email(email)
 
     if not existing_user or not check_password(existing_user["password"], password):
-        return {'error': validation_messages['invalid_credentials'][language]}, 401
+        return jsonify({'error': validation_messages['invalid_credentials'][language]}), 401
 
     onjectId = existing_user["_id"]
     user_data = {
@@ -529,65 +529,7 @@ def loginAuth():
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
-        return {'error': validation_messages['jwt_creation_error'][language]}, 501
-    
-    try:
-        user = User(getEnviromentMongo(env))
-        user.updateJwt(token, onjectId)
-    except Exception as e:
-        app.logger.error(f'Error creating JWT token: {e}')
-        return {'error': validation_messages['jwt_creation_error'][language]}, 401
-    
-    response_data = {
-        'data': user_data
-    }
-
-    logging.info(f'Response: {response_data}')
-    return jsonify(response_data), 200
-
-@app.route('/api/loginApple', methods=['POST'])
-def loginApple():
-    language = request.headers.get('Accept-Language', 'en')
-    env = request.headers.get('Env')
-
-    if not env:
-        return {'error': validation_messages['missing_env_header'][language]}, 400
-
-    email = request.json.get('email', '').strip()
-    appleId = request.json.get('appleId', '').strip()
-
-    if not email or not appleId:
-        return {'error': validation_messages['required_fields'][language]}, 400
-
-    user = User(getEnviromentMongo(env))
-    existing_user = user.find_by_apple_id(appleId)
-
-    if not existing_user :
-        return {'error': validation_messages['invalid_apple_id'][language]}, 401
-
-    onjectId = existing_user["_id"]
-    user_data = {
-        'id': str(onjectId),
-        'email': existing_user["email"],
-        'name': existing_user["name"],
-        'mobilePhone': existing_user["mobilePhone"],
-    }
-
-    jwt_secret = generate_secret_key()
-    jwt_payload = {
-        'id': user_data['id'],
-        'email': user_data['email'],
-        'name': user_data['name'],
-        'mobilePhone': user_data['mobilePhone'],
-        'iat': datetime.datetime.utcnow(),
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
-    }
-
-    try:
-        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
-    except Exception as e:
-        app.logger.error(f'Error creating JWT token: {e}')
-        return {'error': validation_messages['jwt_creation_error'][language]}, 501
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 501
     
     try:
         user = User(getEnviromentMongo(env))
@@ -595,7 +537,7 @@ def loginApple():
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
-        return {'error': validation_messages['jwt_creation_error'][language]}, 401
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
         'token': token,
@@ -604,6 +546,66 @@ def loginApple():
 
     logging.info(f'Response: {response_data}')
     return response_data, 200
+
+@app.route('/api/loginApple', methods=['POST'])
+def loginApple():
+    language = request.headers.get('Accept-Language', 'en')
+    env = request.headers.get('Env')
+
+    if not env:
+        return jsonify({'error': validation_messages['missing_env_header'][language]}), 400
+
+    email = request.json.get('email', '').strip()
+    appleId = request.json.get('appleId', '').strip()
+
+    if not email or not appleId:
+        return jsonify({'error': validation_messages['required_fields'][language]}), 400
+
+    user = User(getEnviromentMongo(env))
+    existing_user = user.find_by_apple_id(appleId)
+
+    if not existing_user :
+        return jsonify({'error': validation_messages['invalid_apple_id'][language]}), 401
+
+    onjectId = existing_user["_id"]
+    user_data = {
+        'id': str(onjectId),
+        'email': existing_user["email"],
+        'name': existing_user["name"],
+        'mobilePhone': existing_user["mobilePhone"],
+    }
+
+    jwt_secret = generate_secret_key()
+    jwt_payload = {
+        'id': user_data['id'],
+        'email': user_data['email'],
+        'name': user_data['name'],
+        'mobilePhone': user_data['mobilePhone'],
+        'iat': datetime.datetime.utcnow(),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+    }
+
+    try:
+        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
+    except Exception as e:
+        app.logger.error(f'Error creating JWT token: {e}')
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 501
+    
+    try:
+        user = User(getEnviromentMongo(env))
+        user.updateJwt(token, onjectId)
+        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
+    except Exception as e:
+        app.logger.error(f'Error creating JWT token: {e}')
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
+    
+    response_data = {
+        'token': token,
+        'data': user_data
+    }
+
+    logging.info(f'Response: {response_data}')
+    return jsonify(response_data), 200
 
 
 @app.route('/api/loginGoogle', methods=['POST'])
@@ -612,21 +614,21 @@ def loginGoogle():
     env = request.headers.get('Env')
 
     if not env:
-        return {'error': validation_messages['missing_env_header'][language]}, 400
+        return jsonify({'error': validation_messages['missing_env_header'][language]}), 400
 
     googleId = request.json.get('googleId', '').strip()
 
     if not googleId:
-        return {'error': validation_messages['required_fields'][language]}, 400
+        return jsonify({'error': validation_messages['required_fields'][language]}), 400
 
     user = User(getEnviromentMongo(env))
     existing_user = user.find_by_accessToken(googleId)
 
     if not existing_user :
-        return {'error': validation_messages['invalid_access_token'][language]}, 401
+        return jsonify({'error': validation_messages['invalid_access_token'][language]}), 401
 
     if not existing_user.get("isRegister", False) :
-        return {'error': validation_messages['invalid_access_token'][language]}, 401
+        return jsonify({'error': validation_messages['invalid_access_token'][language]}), 401
     
     onjectId = existing_user["_id"]
     user_data = {
@@ -652,7 +654,7 @@ def loginGoogle():
         user.updateJwt(token, onjectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
-        return {'error': validation_messages['jwt_creation_error'][language]}, 401
+        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
         'token': token,
@@ -660,4 +662,4 @@ def loginGoogle():
     }
 
     logging.info(f'Response: {response_data}')
-    return response_data, 200
+    return jsonify(response_data), 200
