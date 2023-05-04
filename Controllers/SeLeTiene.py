@@ -539,7 +539,6 @@ def loginAuth():
         return {'error': validation_messages['jwt_creation_error'][language]}, 401
     
     response_data = {
-        'token': token,
         'data': user_data
     }
 
