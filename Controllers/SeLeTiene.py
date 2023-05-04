@@ -466,7 +466,7 @@ def registro():
 
     try:
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
-        user.updateJwt(token, objectId)
+        user.updateJwt(f"{token}", objectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
@@ -524,20 +524,14 @@ def loginAuth():
         'iat': datetime.datetime.utcnow(),
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
     }
-
+    
     try:
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
+        user = User(getEnviromentMongo(env))
+        user.updateJwt(f"{token}", onjectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 501
-    
-    try:
-        user = User(getEnviromentMongo(env))
-        user.updateJwt(token, onjectId)
-        token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
-    except Exception as e:
-        app.logger.error(f'Error creating JWT token: {e}')
-        return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
         'token': f"{token}",
@@ -593,7 +587,7 @@ def loginApple():
     
     try:
         user = User(getEnviromentMongo(env))
-        user.updateJwt(token, onjectId)
+        user.updateJwt(f"{token}", onjectId)
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
@@ -651,7 +645,7 @@ def loginGoogle():
     try:
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
         user = User(getEnviromentMongo(env))
-        user.updateJwt(token, onjectId)
+        user.updateJwt(f"{token}", onjectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
