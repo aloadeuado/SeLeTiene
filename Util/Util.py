@@ -63,6 +63,7 @@ def getDataJwt(token) :
         decoded_jwt = jwt.decode(token, secret_key, algorithms=['HS256'])
         return decoded_jwt
     except Exception as e:
+        print(f"Error al decodificar el token JWT: {e}")
         return None
 
 def validatorsHeaders(env, language, token, logging, url) :

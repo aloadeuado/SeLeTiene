@@ -466,14 +466,14 @@ def registro():
 
     try:
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
-        user.updateJwt(f"{token}", objectId)
+        user.updateJwt(str(token), objectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
 
     response_data = {
-        'token': f"{token}",
+        'token': str(token),
         'data': user_send
     }
     logging.info(f'Response: {response_data}')
@@ -528,13 +528,13 @@ def loginAuth():
     try:
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
         user = User(getEnviromentMongo(env))
-        user.updateJwt(f"{token}", onjectId)
+        user.updateJwt(str(token), onjectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 501
     
     response_data = {
-        'token': f"{token}",
+        'token': str(token),
         'data': user_data
     }
 
@@ -587,14 +587,14 @@ def loginApple():
     
     try:
         user = User(getEnviromentMongo(env))
-        user.updateJwt(f"{token}", onjectId)
+        user.updateJwt(str(token), onjectId)
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
-        'token': f"{token}",
+        'token': str(token),
         'data': user_data
     }
 
@@ -645,13 +645,13 @@ def loginGoogle():
     try:
         token = jwt.encode(jwt_payload, jwt_secret, algorithm='HS256')
         user = User(getEnviromentMongo(env))
-        user.updateJwt(f"{token}", onjectId)
+        user.updateJwt(str(token), onjectId)
     except Exception as e:
         app.logger.error(f'Error creating JWT token: {e}')
         return jsonify({'error': validation_messages['jwt_creation_error'][language]}), 401
     
     response_data = {
-        'token': f"{token}",
+        'token': str(token),
         'data': user_data
     }
 
