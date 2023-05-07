@@ -30,11 +30,17 @@ def createServices():
         return jsonify(validatorsHeaders(env,language, token, logging, request.url)), 400
 
     name = request.form.get("name", "")
+    initial = request.form.get("initial", "")
     description = request.form.get("description", "")
+
+    nameEs = request.form.get("name", "")
+    initialEs = request.form.get("initial", "")
+    descriptionEs = request.form.get("description", "")
+
     image = request.files["image"]
 
-    if not name or not description or not image :
-        error_message = validation_messages["missing_fields"][language].replace("{fields}", "name, description, image")
+    if not name or not description or not initial or not image or not nameEs or not initialEs or not descriptionEs :
+        error_message = validation_messages["missing_fields"][language].replace("{fields}", "name, description, image, initial, nameEs, descriptionEs, initialEs")
         logging.error(f"Error: User not found - Request: {request.url} - Response: {error_message}")
         return jsonify({"error": error_message}), 400
     
@@ -48,7 +54,7 @@ def createServices():
     image.save(os.path.join('image', filename))
     url = request.host_url + 'image/' + filename
 
-    service = Service(name, description, url, 0, 0, True, True, response.get("_id", None), getEnviromentMongo(env))
+    service = Service(name, description, initial, nameEs, descriptionEs, initialEs, url, 0, 0, True, True, response.get("_id", None), getEnviromentMongo(env))
     is_exist_service = service.find_by_name(name)
     if is_exist_service :
         return jsonify({"error": "No add services"}), 400
@@ -71,7 +77,7 @@ def getServices():
     env = request.headers.get('Env')
     token = request.headers.get('Token', '')
 
-    services = Service("", "", "", 0, 0, True, True, res, getEnviromentMongo(env))
+    services = Service("", "", "", "", "", "", "", 0, 0, True, True, res, getEnviromentMongo(env))
     servicess = services.getServices()
 
     if not servicess :
@@ -83,6 +89,10 @@ def getServices():
         data = {"id": str(documento["_id"])}
         data["name"] = documento["name"]
         data["description"] = documento["description"]
+        data["initial"] = documento["name"]
+        data["descriptionEs"] = documento["descriptionEs"]
+        data["nameEs"] = documento["nameEs"]
+        data["initialEs"] = documento["descriptionEs"]
         data["imgUrl"] = documento["imgUrl"]
         listServicesData.append(data)
     return {"data": listServicesData}, 200

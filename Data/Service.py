@@ -8,9 +8,13 @@ class Service:
         self.db = db
         self.services = self.db["Services"]
 
-    def __init__(self, name, description, imgUrl, timeInitDay, timeFinalDay, isActive, isShow, user_id, db):
+    def __init__(self, name, description, initial, nameEs, descriptionEs, initialEs, imgUrl, timeInitDay, timeFinalDay, isActive, isShow, user_id, db):
         self.name = name
         self.description = description
+        self.initial = initial
+        self.descriptionEs = descriptionEs
+        self.nameEs = nameEs
+        self.initialEs = initialEs
         self.imgUrl = imgUrl
         self.timeInitDay = timeInitDay
         self.timeFinalDay = timeFinalDay
@@ -24,6 +28,10 @@ class Service:
         return {
             'name': self.name,
             'description': self.description,
+            'initial': self.initial,
+            'descriptionEs': self.descriptionEs,
+            'nameEs': self.nameEs,
+            'initialEs': self.initialEs,
             'imgUrl': self.imgUrl,
             'timeInitDay': self.timeInitDay,
             'timeFinalDay': self.timeFinalDay,
